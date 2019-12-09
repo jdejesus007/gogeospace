@@ -10,17 +10,19 @@ import (
 	"github.com/jdejesus007/gogeos/geos"
 	"github.com/jlectronix/gogeospace/haversine"
 	"github.com/jlectronix/gogeospace/point"
+	"github.com/jlectronix/gogeospace/vincenty"
 	"github.com/pkg/errors"
 )
 
-// GetIntersectedPolygonByPolygonAndCenterPointRadiusDisc returns one polygon consisting of
-// an individual intersected polygon and a disc derived of the passed in center point and radius
+// GetIntersectedPolygonByPolygonAndCenterPointRadiusHaveriseDisc returns one polygon consisting of
+// an individual intersected polygon and a disc derived of the passed in center
+// point and radius with haversine algorithm
 // Params:
 // Coordinates forming a polygon slice of lat,lng in degress
 // Lat center point lat in degrees
 // Lng center point lng in degrees
 // Radius off center point to create spherical disc or circle in meters
-func GetIntersectedPolygonByPolygonAndCenterPointRadiusDisc(
+func GetIntersectedPolygonByPolygonAndCenterPointRadiusHaveriseDisc(
 	polyCoords []*point.Point,
 	lat float32,
 	lng float32,
@@ -44,13 +46,87 @@ func GetIntersectedPolygonByPolygonAndCenterPointRadiusDisc(
 		return nil, err
 	}
 
-	// Take the smallest radius of the ters
 	// Convert to spherical radius -> radians = distance / earth radius
 	// C lib has problems with gaps around polygon edges
-	// pointsStr = create2DProjectedCircle(float64(vLatitude), float64(vLongitude), smallestServiceRadius)
-	// pointsStr = createVincentyDisc(float64(vLatitude), float64(vLongitude), smallestServiceRadius) // accurate to within 0.5 mm distance or 0.000015″ of bearing
 	polyCoordinates := haversine.CreateHaversineDisc(float64(lat), float64(lng), radius)
 
+	intersectedPolyCoords, err := processPolyCoordinates(polyCoordinates, dotPolygon)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, coords := range intersectedPolyCoords {
+		intersectedPolyPoints := strings.Split(coords, ",")
+		log.Println("Points: ", intersectedPolyPoints)
+		for _, p := range intersectedPolyPoints {
+			latLng := strings.Split(strings.TrimSpace(p), " ")
+			lat, _ := strconv.ParseFloat(strings.Trim(latLng[0], " "), 10)
+			lng, _ := strconv.ParseFloat(strings.Trim(latLng[1], " "), 10)
+			coordinates = append(coordinates, &point.Point{Lat: lat, Lng: lng})
+
+		}
+	}
+
+	return coordinates, nil
+}
+
+// GetIntersectedPolygonByPolygonAndCenterPointRadiusVincentyDisc returns one polygon consisting of
+// an individual intersected polygon and a disc derived of the passed in center
+// point and radius with vincenty algorithm
+// Params:
+// Coordinates forming a polygon slice of lat,lng in degress
+// Lat center point lat in degrees
+// Lng center point lng in degrees
+// Radius off center point to create spherical disc or circle in meters
+func GetIntersectedPolygonByPolygonAndCenterPointRadiusVincentyDisc(
+	polyCoords []*point.Point,
+	lat float32,
+	lng float32,
+	radius float64) (coordinates []*point.Point, err error) {
+
+	// Catch internal C library panics
+	defer func() {
+		if e := recover(); e != nil {
+			var ok bool
+			err, ok = e.(error)
+			if !ok {
+				err = errors.Wrap(fmt.Errorf("Error: %v", e), fmt.Sprintf("Debug Stack: %s", string(debug.Stack())))
+				return
+			}
+			err = errors.Wrap(err, fmt.Sprintf("Debug Stack: %s", string(debug.Stack())))
+		}
+	}()
+
+	dotPolygon, err := getGeosPolygonFromCoordinates(polyCoords)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to spherical radius -> radians = distance / earth radius
+	// C lib has problems with gaps around polygon edges
+	polyCoordinates := vincenty.CreateVincentyDisc(float64(lat), float64(lng), radius) // accurate to within 0.5 mm distance or 0.000015″ of bearing
+
+	intersectedPolyCoords, err := processPolyCoordinates(polyCoordinates, dotPolygon)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, coords := range intersectedPolyCoords {
+		intersectedPolyPoints := strings.Split(coords, ",")
+		log.Println("Points: ", intersectedPolyPoints)
+		for _, p := range intersectedPolyPoints {
+			latLng := strings.Split(strings.TrimSpace(p), " ")
+			lat, _ := strconv.ParseFloat(strings.Trim(latLng[0], " "), 10)
+			lng, _ := strconv.ParseFloat(strings.Trim(latLng[1], " "), 10)
+			coordinates = append(coordinates, &point.Point{Lat: lat, Lng: lng})
+
+		}
+	}
+
+	return coordinates, nil
+}
+
+func processPolyCoordinates(polyCoordinates []*point.Point, dotPolygon *geos.Geometry) ([]string, error) {
 	// Generic collection of points - convert to coordinate string
 	var pointsStr string
 	for _, p := range polyCoordinates {
@@ -106,19 +182,7 @@ func GetIntersectedPolygonByPolygonAndCenterPointRadiusDisc(
 		log.Fatalln("Unknown type", polyType, intersectedPoly)
 	}
 
-	for _, coords := range intersectedPolyCoords {
-		intersectedPolyPoints := strings.Split(coords, ",")
-		log.Println("Points: ", intersectedPolyPoints)
-		for _, p := range intersectedPolyPoints {
-			latLng := strings.Split(strings.TrimSpace(p), " ")
-			lat, _ := strconv.ParseFloat(strings.Trim(latLng[0], " "), 10)
-			lng, _ := strconv.ParseFloat(strings.Trim(latLng[1], " "), 10)
-			coordinates = append(coordinates, &point.Point{Lat: lat, Lng: lng})
-
-		}
-	}
-
-	return coordinates, nil
+	return intersectedPolyCoords, nil
 }
 
 // Expected format - slice of coordinate points

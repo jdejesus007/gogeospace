@@ -2,6 +2,10 @@ package vincenty
 
 import (
 	"math"
+
+	"github.com/jlectronix/gogeospace/constants"
+	"github.com/jlectronix/gogeospace/point"
+	"github.com/jlectronix/gogeospace/utils"
 )
 
 const (
@@ -14,14 +18,14 @@ const (
 )
 
 // CreateVincentyDisc creates a disc with center lat1, lng1, and radius in meters
-func CreateVincentyDisc(lat1, lng1, radius float64) []*Point {
+func CreateVincentyDisc(lat1, lng1, radius float64) []*point.Point {
 	// all going in as degrees and meters
-	steps := NUM_STEPS_PRECISION // precision
-	var coordinates []*Point
+	steps := constants.NUM_STEPS_PRECISION // precision
+	var coordinates []*point.Point
 	for i := 0.0; i < steps; i++ {
 		startBearing := float64(i * -360.0 / steps)
 		lat2, lng2, _ := CalculateVincentyCoordinate(lat1, lng1, radius, startBearing)
-		coordinates = append(coordinates, &Point{Lat: lat2, Lng: lng2})
+		coordinates = append(coordinates, &point.Point{Lat: lat2, Lng: lng2})
 	}
 	return coordinates
 }
@@ -30,8 +34,8 @@ func CreateVincentyDisc(lat1, lng1, radius float64) []*Point {
 // degrees, radius distance in meters, and bearing in degrees
 // Returns latitude2, longitude2, and ending bearing in degrees
 func CalculateVincentyCoordinate(lat1, lng1, radius, startBearing float64) (float64, float64, float64) {
-	phi1 := DegreesToRadians(lat1)
-	alpha1 := DegreesToRadians(startBearing)
+	phi1 := utils.DegreesToRadians(lat1)
+	alpha1 := utils.DegreesToRadians(startBearing)
 	cosAlpha1 := math.Cos(alpha1)
 	sinAlpha1 := math.Sin(alpha1)
 	s := radius
@@ -112,11 +116,11 @@ func CalculateVincentyCoordinate(lat1, lng1, radius, startBearing float64) (floa
 	alpha2 := math.Atan2(sinAlpha, -sinU1*sinSigma+cosU1*cosSigma*cosAlpha1)
 
 	// end coordinate bearing result
-	endBearing := RadToDegrees(alpha2)
+	endBearing := utils.RadToDegrees(alpha2)
 
 	// coordinate result
-	latitude := RadToDegrees(phi2)
-	longitude := lng1 + RadToDegrees(L)
+	latitude := utils.RadToDegrees(phi2)
+	longitude := lng1 + utils.RadToDegrees(L)
 
 	return latitude, longitude, endBearing
 }

@@ -22,9 +22,9 @@ func main() {
 		coordinates = append(coordinates, &point.Point{Lat: lat, Lng: lng})
 	}
 
-	intersectedPolyPoints, err := geospace.GetIntersectedPolygonByPolygonAndCenterPointRadiusDisc(coordinates, 26.43, -80.32, 7000)
+	intersectedPolyPoints, err := geospace.GetIntersectedPolygonByPolygonAndCenterPointRadiusHaveriseDisc(coordinates, 26.43, -80.32, 7000)
 	if err != nil {
-		log.Println("Failed intersecting polygon with disc")
+		log.Println("Failed intersecting polygon with haversine disc")
 	}
 
 	if len(intersectedPolyPoints) > 0 {
@@ -33,12 +33,28 @@ func main() {
 			transformedPoints += fmt.Sprintf("%f,%f|", p.Lat, p.Lng) // transform to expected format 26,80|29,81
 		}
 
-		log.Println("I have -> ", transformedPoints)
+		if len(transformedPoints) > 0 {
+			transformedPoints = transformedPoints[:len(transformedPoints)-1] // remove last pipe
+		}
+
+		log.Println("Final with Harversine: ", transformedPoints)
+	}
+
+	intersectedPolyPoints, err = geospace.GetIntersectedPolygonByPolygonAndCenterPointRadiusVincentyDisc(coordinates, 26.43, -80.32, 7000)
+	if err != nil {
+		log.Println("Failed intersecting polygon with vincenty disc")
+	}
+
+	if len(intersectedPolyPoints) > 0 {
+		var transformedPoints string
+		for _, p := range intersectedPolyPoints {
+			transformedPoints += fmt.Sprintf("%f,%f|", p.Lat, p.Lng) // transform to expected format 26,80|29,81
+		}
 
 		if len(transformedPoints) > 0 {
 			transformedPoints = transformedPoints[:len(transformedPoints)-1] // remove last pipe
 		}
 
-		log.Println("Final: ", transformedPoints)
+		log.Println("Final with Vincenty: ", transformedPoints)
 	}
 }
