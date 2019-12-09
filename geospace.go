@@ -57,7 +57,6 @@ func GetIntersectedPolygonByPolygonAndCenterPointRadiusHaveriseDisc(
 
 	for _, coords := range intersectedPolyCoords {
 		intersectedPolyPoints := strings.Split(coords, ",")
-		log.Println("Points: ", intersectedPolyPoints)
 		for _, p := range intersectedPolyPoints {
 			latLng := strings.Split(strings.TrimSpace(p), " ")
 			lat, _ := strconv.ParseFloat(strings.Trim(latLng[0], " "), 10)
@@ -113,7 +112,6 @@ func GetIntersectedPolygonByPolygonAndCenterPointRadiusVincentyDisc(
 
 	for _, coords := range intersectedPolyCoords {
 		intersectedPolyPoints := strings.Split(coords, ",")
-		log.Println("Points: ", intersectedPolyPoints)
 		for _, p := range intersectedPolyPoints {
 			latLng := strings.Split(strings.TrimSpace(p), " ")
 			lat, _ := strconv.ParseFloat(strings.Trim(latLng[0], " "), 10)
@@ -155,7 +153,6 @@ func processPolyCoordinates(polyCoordinates []*point.Point, dotPolygon *geos.Geo
 
 	// If nonintersecting - return empty to skip area
 	if intersectedPoly.String()[len(intersectedPoly.String())-5:] == "EMPTY" {
-		log.Println("empty")
 		return nil, nil
 	}
 
