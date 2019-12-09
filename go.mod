@@ -1,4 +1,4 @@
-module gogeospace
+module github.com/jlectronix/gogeospace
 
 go 1.13
 
