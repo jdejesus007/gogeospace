@@ -1,5 +1,7 @@
 github.com/jdejesus007/gogeos v0.1.4 h1:SOU0cwLH7Rx2iU52nxUVAlvc+3bVd8h5VUK9AB79DBg=
 github.com/jdejesus007/gogeos v0.1.4/go.mod h1:bWjdRZOXr1hfazt/UTUDXa+2FTUBhEVpjNt5uiP1A0s=
-github.com/jlectronix/gogeospace v0.0.0-20191209053144-0705c16c587b h1:yiyTyhTyy5P6ebB0VWDSu9uCwo1TZzE5wY/uXcUKfGg=
+github.com/jdejesus007/gogeospace v0.0.0-20191209053144-0705c16c587b h1:yiyTyhTyy5P6ebB0VWDSu9uCwo1TZzE5wY/uXcUKfGg=
+github.com/jdejesus007/gogeospace v0.0.0-20191209061111-8eb36f5ea109 h1:vqLcV/fO6hI6fXZjlC4QIDNyTbtKjQlyl1S2eYQUM3s=
+github.com/jdejesus007/gogeospace v0.0.0-20191209061111-8eb36f5ea109/go.mod h1:W7yhOY4Fz5nfWQhfxFPsE+nhsm3wIZk6vcz5DU4XgeY=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

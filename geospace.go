@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/jdejesus007/gogeos/geos"
-	"github.com/jlectronix/gogeospace/haversine"
-	"github.com/jlectronix/gogeospace/point"
-	"github.com/jlectronix/gogeospace/vincenty"
+	"github.com/jdejesus007/gogeospace/haversine"
+	"github.com/jdejesus007/gogeospace/point"
+	"github.com/jdejesus007/gogeospace/vincenty"
 	"github.com/pkg/errors"
 )
 

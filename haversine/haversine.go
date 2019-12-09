@@ -3,9 +3,9 @@ package haversine
 import (
 	"math"
 
-	"github.com/jlectronix/gogeospace/constants"
-	"github.com/jlectronix/gogeospace/point"
-	"github.com/jlectronix/gogeospace/utils"
+	"github.com/jdejesus007/gogeospace/constants"
+	"github.com/jdejesus007/gogeospace/point"
+	"github.com/jdejesus007/gogeospace/utils"
 )
 
 const (

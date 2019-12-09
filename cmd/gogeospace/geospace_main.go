@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	geospace "github.com/jlectronix/gogeospace"
-	"github.com/jlectronix/gogeospace/point"
+	geospace "github.com/jdejesus007/gogeospace"
+	"github.com/jdejesus007/gogeospace/point"
 )
 
 func main() {
