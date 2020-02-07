@@ -48,8 +48,6 @@ func DoPolygonsIntersect(coordinatesA, coordinatesB []*point.Point) (intersects 
 		return false, nil
 	}
 
-	log.Println("Intersection -> ", intersectedPoly.String())
-
 	return true, nil
 }
 
