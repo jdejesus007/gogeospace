@@ -18,7 +18,7 @@ const (
 )
 
 // CreateVincentyDisc creates a disc with center lat1, lng1, and radius in meters
-func CreateVincentyDisc(lat1, lng1, radius float64) []*point.Point {
+func CreateDisc(lat1, lng1, radius float64) []*point.Point {
 	// all going in as degrees and meters
 	steps := constants.NUM_STEPS_PRECISION // precision
 	var coordinates []*point.Point

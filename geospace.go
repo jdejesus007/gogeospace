@@ -41,7 +41,12 @@ func DoPolygonsIntersect(coordinatesA, coordinatesB []*point.Point) (intersects 
 		return false, err
 	}
 
-	intersectedPoly := geos.Must(dotPolygonA.Intersection(dotPolygonB))
+	polyAB, err := dotPolygonA.Intersection(dotPolygonB)
+	if err != nil {
+		return false, err
+	}
+
+	intersectedPoly := geos.Must(polyAB, nil)
 
 	// If nonintersecting - return empty to skip area
 	if intersectedPoly.String()[len(intersectedPoly.String())-5:] == "EMPTY" {
@@ -85,7 +90,7 @@ func GetIntersectedPolygonByPolygonAndCenterPointRadiusHaveriseDisc(
 
 	// Convert to spherical radius -> radians = distance / earth radius
 	// C lib has problems with gaps around polygon edges
-	polyCoordinates := haversine.CreateHaversineDisc(float64(lat), float64(lng), radius)
+	polyCoordinates := haversine.CreateDisc(float64(lat), float64(lng), radius)
 
 	intersectedPolyCoords, err := processPolyCoordinates(polyCoordinates, dotPolygon)
 	if err != nil {
@@ -140,7 +145,7 @@ func GetIntersectedPolygonByPolygonAndCenterPointRadiusVincentyDisc(
 
 	// Convert to spherical radius -> radians = distance / earth radius
 	// C lib has problems with gaps around polygon edges
-	polyCoordinates := vincenty.CreateVincentyDisc(float64(lat), float64(lng), radius) // accurate to within 0.5 mm distance or 0.000015″ of bearing
+	polyCoordinates := vincenty.CreateDisc(float64(lat), float64(lng), radius) // accurate to within 0.5 mm distance or 0.000015″ of bearing
 
 	intersectedPolyCoords, err := processPolyCoordinates(polyCoordinates, dotPolygon)
 	if err != nil {
@@ -180,8 +185,22 @@ func processPolyCoordinates(polyCoordinates []*point.Point, dotPolygon *geos.Geo
 	rawCirclePolygonStr := fmt.Sprintf("POLYGON ((%s))", pointsStr+", "+sepPoints[0]) // take the first and attach the end to close the polygon
 
 	// Final intersected polygon - do this for DOT with service radius only
-	circlePoly := geos.Must(geos.FromWKT(rawCirclePolygonStr))
-	intersectedPoly := geos.Must(dotPolygon.Intersection(circlePoly))
+	geo, err := geos.FromWKT(rawCirclePolygonStr)
+	if err != nil {
+		return nil, err
+	}
+	circlePoly := geos.Must(geo, nil)
+
+	cirGeo, err := dotPolygon.Intersection(circlePoly)
+	if err != nil {
+		return nil, err
+	}
+	intersectedPoly := geos.Must(cirGeo, nil)
+
+	// Ok if no intersection
+	if intersectedPoly == nil {
+		return nil, nil
+	}
 
 	polyType, err := intersectedPoly.Type()
 	if err != nil {
@@ -198,6 +217,8 @@ func processPolyCoordinates(polyCoordinates []*point.Point, dotPolygon *geos.Geo
 	switch polyType {
 	case geos.POLYGON:
 		polyStr := intersectedPoly.String()
+		// TODO - polygon with another one inside is a hole
+		// C lib has issues hanlding this
 		polyStr = strings.Replace(polyStr, "), (", ", ", -1) // sanitize this format ), (
 		intersectedPolyCoords = append(intersectedPolyCoords, polyStr[10:len(polyStr)-2])
 	case geos.MULTIPOLYGON:
@@ -212,6 +233,10 @@ func processPolyCoordinates(polyCoordinates []*point.Point, dotPolygon *geos.Geo
 			points = strings.Replace(points, "), (", ", ", -1) // sanitize this format ), (
 			intersectedPolyCoords = append(intersectedPolyCoords, points)
 		}
+	case geos.LINESTRING:
+		lineStr := intersectedPoly.String()
+		lineStr = strings.Replace(lineStr, "), (", ", ", -1) // sanitize this format ), (
+		intersectedPolyCoords = append(intersectedPolyCoords, lineStr[12:len(lineStr)-2])
 	default:
 		log.Fatalln("Unknown type", polyType, intersectedPoly)
 	}
@@ -234,11 +259,13 @@ func getGeosPolygonFromCoordinates(coordinates []*point.Point) (geosPoly *geos.G
 	// is a closed circuit with exact points at the beginning and end of the
 	// polygon points sequence
 	sepPoints := strings.Split(points, ",")
-	outputt := fmt.Sprintf("POLYGON ((%s))", points+", "+sepPoints[0])
+	output := fmt.Sprintf("POLYGON ((%s))", points+", "+sepPoints[0])
 
-	// This will panic if C library returns non-nil error - catch in calling
-	// method
-	geosPoly = geos.Must(geos.FromWKT(outputt))
+	geo, err := geos.FromWKT(output)
+	if err != nil {
+		return nil, err
+	}
+	geosPoly = geos.Must(geo, nil)
 
 	return geosPoly, nil
 }

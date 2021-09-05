@@ -15,7 +15,7 @@ const (
 
 // lat1, ln2 in degrees
 // radius in radians -> ditance / Earth Radius gives radians
-func CreateHaversineDisc(lat1, lng1, radius float64) []*point.Point {
+func CreateDisc(lat1, lng1, radius float64) []*point.Point {
 
 	steps := constants.NUM_STEPS_PRECISION               // precision
 	radiusRad := radius / float64(EARTH_RADIUS_CONSTANT) // meters

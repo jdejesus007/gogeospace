@@ -1,0 +1,4 @@
+# github.com/jdejesus007/gogeos v0.1.5
+github.com/jdejesus007/gogeos/geos
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
