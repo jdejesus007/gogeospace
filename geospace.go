@@ -36,14 +36,29 @@ func DoPolygonsIntersect(coordinatesA, coordinatesB []*point.Point) (intersects 
 		return false, err
 	}
 
+	if dotPolygonA == nil {
+		return false,
+			fmt.Errorf("nil polygon from A coordinates - incoming: %v", coordinatesA)
+	}
+
 	dotPolygonB, err := getGeosPolygonFromCoordinates(coordinatesB)
 	if err != nil {
 		return false, err
 	}
 
+	if dotPolygonB == nil {
+		return false,
+			fmt.Errorf("nil polygon from B coordinates - incoming: %v", coordinatesB)
+	}
+
 	polyAB, err := dotPolygonA.Intersection(dotPolygonB)
 	if err != nil {
 		return false, err
+	}
+
+	if polyAB == nil {
+		return false,
+			fmt.Errorf("nil polygon from A/B intersection - incoming A/B: [%v - %v]", coordinatesA, coordinatesB)
 	}
 
 	intersectedPoly := geos.Must(polyAB, nil)
@@ -91,6 +106,18 @@ func GetIntersectedPolygonByPolygonAndCenterPointRadiusHaveriseDisc(
 	// Convert to spherical radius -> radians = distance / earth radius
 	// C lib has problems with gaps around polygon edges
 	polyCoordinates := haversine.CreateDisc(float64(lat), float64(lng), radius)
+
+	if dotPolygon == nil {
+		return nil,
+			fmt.Errorf("nil geometric poly shape from incoming boundary coordinates - [%v]",
+				coordinates)
+	}
+
+	if polyCoordinates == nil {
+		return nil,
+			fmt.Errorf("nil haversine disc - incoming lat/lng/radius - [%f / %f / %f]",
+				lat, lng, radius)
+	}
 
 	intersectedPolyCoords, err := processPolyCoordinates(polyCoordinates, dotPolygon)
 	if err != nil {
@@ -265,6 +292,12 @@ func getGeosPolygonFromCoordinates(coordinates []*point.Point) (geosPoly *geos.G
 	if err != nil {
 		return nil, err
 	}
+
+	if geo == nil {
+		return nil, fmt.Errorf("failed to generate decoded geometric shape from wkt - Incoming Coordinates: %v - Output: %s",
+			points, output)
+	}
+
 	geosPoly = geos.Must(geo, nil)
 
 	return geosPoly, nil
